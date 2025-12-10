@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Редактор графів{% endblock %}
+
+{% block extra_css %}
+<style>
+    #graph-container {
+        height: 600px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: #f8f9fa;
+    }
+    
+    .control-panel {
+        position: sticky;
+        top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>
+                <i class="bi bi-pencil-square text-primary"></i>
+                Редактор графів
+            </h2>
+            <p class="text-muted">Створіть новий граф або завантажте існуючий</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Панель керування -->
+        <div class="col-lg-3">
+            <div class="card control-panel">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-sliders"></i> Керування
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Назва графа -->
+                    <div class="mb-3">
+                        <label class="form-label">Назва графа</label>
+                        <input type="text" class="form-control" id="graph-name" 
+                               placeholder="Мій граф" value="Новий граф">
+                    </div>
+
+                    <!-- Інформація -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Вершин:</span>
+                            <span id="node-count" class="badge bg-primary">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <span>Ребер:</span>
+                            <span id="edge-count" class="badge bg-success">0</span>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Режим роботи -->
+                    <div class="mb-3">
+                        <label class="form-label">Режим</label>
+                        <select class="form-select" id="edit-mode">
+                            <option value="add-node">Додати вершину</option>
+                            <option value="add-edge">Додати ребро</option>
+                            <option value="edit">Редагувати</option>
+                            <option value="delete">Видалити</option>
+                        </select>
+                    </div>
+
+                    <!-- Вага ребра -->
+                    <div class="mb-3" id="edge-weight-group">
+                        <label class="form-label">Вага ребра</label>
+                        <input type="number" class="form-control" id="edge-weight" 
+                               value="10" min="0.1" step="0.1">
+                    </div>
+
+                    <hr>
+
+                    <!-- Дії -->
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success" id="save-graph">
+                            <i class="bi bi-save"></i> Зберегти
+                        </button>
+                        <button class="btn btn-outline-primary" id="load-graph">
+                            <i class="bi bi-folder-open"></i> Завантажити
+                        </button>
+                        <button class="btn btn-outline-warning" id="clear-graph">
+                            <i class="bi bi-trash"></i> Очистити
+                        </button>
+                    </div>
+
+                    <hr>
+
+                    <!-- Генерація -->
+                    <div class="mb-2">
+                        <button class="btn btn-outline-secondary w-100" id="generate-random">
+                            <i class="bi bi-shuffle"></i> Випадковий граф
+                        </button>
+                    </div>
+                    <div class="mb-2">
+                        <button class="btn btn-outline-info w-100" id="generate-cities">
+                            <i class="bi bi-geo-alt"></i> Граф міст
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Полотно графа -->
+        <div class="col-lg-

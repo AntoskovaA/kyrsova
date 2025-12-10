@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Головна - Shortest Path Finder{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto text-center">
+            <h1 class="display-4 mb-4">
+                <i class="bi bi-diagram-3 text-primary"></i>
+                Система пошуку найкоротших шляхів
+            </h1>
+            <p class="lead text-muted">
+                Використання ройових алгоритмів (Ant Colony Optimization) 
+                та MongoDB для ефективного пошуку оптимальних маршрутів
+            </p>
+        </div>
+    </div>
+
+    <!-- Можливості -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-pencil-square text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title">Створення графів</h5>
+                    <p class="card-text text-muted">
+                        Інтерактивний редактор для створення та редагування графів.
+                        Генерація випадкових графів або міст України.
+                    </p>
+                    <a href="{{ url_for('main.graph_editor') }}" class="btn btn-outline-primary">
+                        Створити граф <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-bug text-success" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title">Мурашиний алгоритм</h5>
+                    <p class="card-text text-muted">
+                        Використання Ant Colony Optimization (ACO) для пошуку 
+                        оптимальних шляхів з візуалізацією процесу.
+                    </p>
+                    <a href="{{ url_for('main.search_page') }}" class="btn btn-outline-success">
+                        Знайти шлях <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-bar-chart text-info" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title">Порівняння алгоритмів</h5>
+                    <p class="card-text text-muted">
+                        Порівняння ефективності ACO з класичним алгоритмом 
+                        Дейкстри та аналіз результатів.
+                    </p>
+                    <a href="{{ url_for('main.search_page') }}" class="btn btn-outline-info">
+                        Порівняти <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mb-5">
+        <div class="col-lg-10 mx-auto">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i> Статистика системи
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center" id="statistics">
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <h2 class="text-primary" id="total-graphs">
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                </h2>
+                                <p class="text-muted mb-0">Створено графів</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <h2 class="text-success" id="total-searches">
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                </h2>
+                                <p class="text-muted mb-0">Виконано пошуків</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <h2 class="text-info" id="avg-time">
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                </h2>
+                                <p class="text-muted mb-0">Середній час (сек)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Швидкий старт -->
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-rocket-takeoff text-warning"></i> 
+                        Швидкий старт
+                    </h5>
+                    <ol class="mb-0">
+                        <li>Створіть новий граф або згенеруйте випадковий</li>
+                        <li>Оберіть початкову та кінцеву вершини</li>
+                        <li>Налаштуйте параметри алгоритму (опціонально)</li>
+                        <li>Запустіть пошук та проаналізуйте результати</li>
+                    </ol>
+                    <div class="mt-3">
+                        <a href="{{ url_for('main.graph_editor') }}" class="btn btn-warning">
+                            <i class="bi bi-play-fill"></i> Почати зараз
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Завантаження статистики
+    $.get('/api/statistics', function(data) {
+        $('#total-graphs').text(data.total_graphs || 0);
+        $('#total-searches').text(data.total_searches || 0);
+        
+        // Обчислення середнього часу
+        if (data.algorithms_usage && data.algorithms_usage.length > 0) {
+            const avgTime = data.algorithms_usage.reduce((sum, alg) => 
+                sum + (alg.avg_time || 0), 0) / data.algorithms_usage.length;
+            $('#avg-time').text(avgTime.toFixed(3));
+        } else {
+            $('#avg-time').text('0.000');
+        }
+    }).fail(function() {
+        $('#total-graphs, #total-searches, #avg-time').text('N/A');
+    });
+});
+</script>
+{% endblock %}
