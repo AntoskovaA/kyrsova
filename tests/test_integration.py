@@ -125,10 +125,14 @@ class TestFlaskAPI(unittest.TestCase):
         # Очікуваний шлях: A -> B -> C (10 + 5 = 15)
         self.assertEqual(result['distance'], 15.0)
         self.assertEqual(result['path'], ['A', 'B', 'C'])
+        self.assertIn('result_id', result)
+        
+        result_id_str = result['result_id']
         
         # 4. Перевірка збереження результату в БД
-        db_result = self.db.get_search_result(result['result_id'])
-        self.assertIsNotNone(db_result)
+        db_result = self.db.get_search_result(result_id_str)
+        self.assertIsNotNone(db_result, f"Результат з ID {result_id_str} не знайдено в БД.")
+        
         self.assertEqual(db_result['algorithm'], 'Dijkstra')
 
     def test_d_compare_algorithms(self):

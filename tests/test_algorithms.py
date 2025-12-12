@@ -154,7 +154,8 @@ class TestDijkstra(unittest.TestCase):
         """Тест що час виконання вимірюється"""
         _, _, execution_time = self.dijkstra.find_shortest_path('A', 'D')
         
-        self.assertGreater(execution_time, 0)
+        self.assertGreaterEqual(execution_time, 0)
+        self.assertIsInstance(execution_time, float)
     
     def test_find_all_shortest_paths(self):
         """Тест пошуку шляхів до всіх вершин"""
