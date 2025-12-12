@@ -1,5 +1,5 @@
 """
-API маршрути для роботи з графами
+API маршрути для роботи з графами: CRUD та генерація
 """
 from flask import Blueprint, request, jsonify
 from database import MongoDB
@@ -17,18 +17,18 @@ db = None
 
 
 def init_db(database):
-    """Ініціалізація БД для маршрутів"""
+    """Ініціалізація об'єкта бази даних для використання у маршрутах"""
     global db
     db = database
 
 
 @graph_bp.route('/create', methods=['POST'])
 def create_graph():
-    """Створення нового графа"""
+    """Створення нового графа у базі даних"""
     try:
         data = request.get_json()
         
-        # Валідація
+        # Валідація графа перед збереженням
         is_valid, message = GraphUtils.validate_graph(data)
         if not is_valid:
             return jsonify({'error': message}), 400
@@ -72,7 +72,7 @@ def get_graph(graph_id):
 
 @graph_bp.route('/all', methods=['GET'])
 def get_all_graphs():
-    """Отримання всіх графів"""
+    """Отримання списку всіх збережених графів"""
     try:
         limit = request.args.get('limit', 50, type=int)
         skip = request.args.get('skip', 0, type=int)
@@ -91,7 +91,7 @@ def get_all_graphs():
     
 @graph_bp.route('/<graph_id>', methods=['PUT'])
 def update_graph(graph_id):
-    """Оновлення графа"""
+    """Оновлення існуючого графа"""
     try:
         data = request.get_json()
         
@@ -118,7 +118,7 @@ def update_graph(graph_id):
 
 @graph_bp.route('/<graph_id>', methods=['DELETE'])
 def delete_graph(graph_id):
-    """Видалення графа"""
+    """Видалення графа та пов'язаних результатів пошуку"""
     try:
         success = db.delete_graph(graph_id)
 
@@ -137,9 +137,10 @@ def delete_graph(graph_id):
 
 @graph_bp.route('/generate/random', methods=['POST'])
 def generate_random_graph():
-    """Генерація випадкового графа"""
+    """Генерація випадкового графа з параметрами, отриманими з тіла запиту"""
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
+        
         num_nodes = data.get('num_nodes', 10)
         connectivity = data.get('connectivity', 0.3)
         
@@ -153,6 +154,9 @@ def generate_random_graph():
         
         graph_id = db.create_graph(graph_data)
         
+        # Додаємо ID як рядок для JSON серіалізації
+        graph_data['_id'] = graph_id 
+        
         return jsonify({
             'success': True,
             'graph_id': graph_id,
@@ -160,16 +164,22 @@ def generate_random_graph():
         }), 201
         
     except Exception as e:
-        logger.error(f"Помилка генерації графа: {e}")
+        logger.error(f"Помилка генерації випадкового графа: {e}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
 
 @graph_bp.route('/generate/cities', methods=['POST'])
 def generate_cities_graph():
-    """Генерація графа міст України"""
+    """Генерація графа міст України (передвстановлений граф)"""
     try:
+        # Виклик get_json для коректної обробки Content-Type, але дані не використовуються
+        request.get_json(silent=True)
+        
         graph_data = GraphUtils.generate_cities_graph()
         graph_id = db.create_graph(graph_data)
+        
+        # Додаємо ID як рядок для JSON серіалізації
+        graph_data['_id'] = graph_id 
         
         return jsonify({
             'success': True,
@@ -178,5 +188,5 @@ def generate_cities_graph():
         }), 201
         
     except Exception as e:
-        logger.error(f"Помилка генерації графа міст: {e}")
+        logger.error(f"Помилка генерації графа міст: {e}", exc_info=True)
         return jsonify({'error': str(e)}), 500

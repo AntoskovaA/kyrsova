@@ -5,15 +5,23 @@
 {% block extra_css %}
 <style>
     #graph-container {
-        height: 600px;
-        border: 2px solid #dee2e6;
-        border-radius: 8px;
+        height: 650px; /* Трохи збільшено висоту */
+        border: 2px solid var(--primary-light);
+        border-radius: 10px;
         background: #f8f9fa;
+        box-shadow: 0 4px 8px rgba(0,0,0,.05);
     }
     
     .control-panel {
         position: sticky;
         top: 20px;
+    }
+
+    .btn-sm-custom {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        border-radius: 0.3rem;
     }
 </style>
 {% endblock %}
@@ -22,16 +30,17 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h2>
-                <i class="bi bi-pencil-square text-primary"></i>
-                Редактор графів
+            <h2 class="d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-pencil-square text-primary"></i> Редактор графів</span>
+                <button class="btn btn-accent btn-sm-custom" data-bs-toggle="modal" data-bs-target="#instructionModal">
+                    <i class="bi bi-question-circle"></i> Інструкція
+                </button>
             </h2>
             <p class="text-muted">Створіть новий граф або завантажте існуючий</p>
         </div>
     </div>
 
     <div class="row">
-        <!-- Панель керування -->
         <div class="col-lg-3">
             <div class="card control-panel">
                 <div class="card-header bg-primary text-white">
@@ -40,30 +49,27 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <!-- Назва графа -->
                     <div class="mb-3">
-                        <label class="form-label">Назва графа</label>
+                        <label class="form-label fw-bold">Назва графа</label>
                         <input type="text" class="form-control" id="graph-name" 
                                placeholder="Мій граф" value="Новий граф">
                     </div>
 
-                    <!-- Інформація -->
-                    <div class="mb-3">
+                    <div class="mb-3 p-2 border rounded" style="background-color: var(--primary-light);">
                         <div class="d-flex justify-content-between">
-                            <span>Вершин:</span>
+                            <span class="fw-bold">Вершин:</span>
                             <span id="node-count" class="badge bg-primary">0</span>
                         </div>
                         <div class="d-flex justify-content-between mt-1">
-                            <span>Ребер:</span>
-                            <span id="edge-count" class="badge bg-success">0</span>
+                            <span class="fw-bold">Ребер:</span>
+                            <span id="edge-count" class="badge bg-accent">0</span>
                         </div>
                     </div>
 
-                    <hr>
+                    <hr class="text-primary-light">
 
-                    <!-- Режим роботи -->
                     <div class="mb-3">
-                        <label class="form-label">Режим</label>
+                        <label class="form-label fw-bold">Режим редагування</label>
                         <select class="form-select" id="edit-mode">
                             <option value="add-node">Додати вершину</option>
                             <option value="add-edge">Додати ребро</option>
@@ -72,38 +78,41 @@
                         </select>
                     </div>
 
-                    <!-- Вага ребра -->
                     <div class="mb-3" id="edge-weight-group">
-                        <label class="form-label">Вага ребра</label>
+                        <label class="form-label fw-bold">Вага ребра</label>
                         <input type="number" class="form-control" id="edge-weight" 
                                value="10" min="0.1" step="0.1">
                     </div>
 
-                    <hr>
+                    <hr class="text-primary-light">
 
-                    <!-- Дії -->
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-success" id="save-graph">
+                    <div class="d-grid gap-2 mb-3">
+                        <button class="btn btn-primary" id="save-graph">
                             <i class="bi bi-save"></i> Зберегти
                         </button>
-                        <button class="btn btn-outline-primary" id="load-graph">
-                            <i class="bi bi-folder-open"></i> Завантажити
-                        </button>
-                        <button class="btn btn-outline-warning" id="clear-graph">
-                            <i class="bi bi-trash"></i> Очистити
-                        </button>
                     </div>
 
-                    <hr>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <button class="btn btn-outline-primary w-100 btn-sm-custom" id="load-graph">
+                                <i class="bi bi-folder-open"></i> Завантажити
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-danger w-100 btn-sm-custom" id="clear-graph">
+                                <i class="bi bi-trash"></i> Очистити
+                            </button>
+                        </div>
+                    </div>
 
-                    <!-- Генерація -->
-                    <div class="mb-2">
-                        <button class="btn btn-outline-secondary w-100" id="generate-random">
+                    <hr class="text-primary-light">
+
+                    <p class="fw-bold text-muted mb-2">Автоматична генерація:</p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-secondary w-100 btn-sm-custom" id="generate-random">
                             <i class="bi bi-shuffle"></i> Випадковий граф
                         </button>
-                    </div>
-                    <div class="mb-2">
-                        <button class="btn btn-outline-info w-100" id="generate-cities">
+                        <button class="btn btn-outline-accent w-100 btn-sm-custom" id="generate-cities">
                             <i class="bi bi-geo-alt"></i> Граф міст
                         </button>
                     </div>
@@ -111,5 +120,61 @@
             </div>
         </div>
 
-        <!-- Полотно графа -->
-        <div class="col-lg-
+        <div class="col-lg-9">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div id="graph-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="instructionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-info-circle"></i> Інструкція до редактора
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Додати вершину:</strong> Оберіть режим "Додати вершину" і клацніть на вільному місці на полотні.</li>
+                    <li class="list-group-item"><strong>Додати ребро:</strong> Оберіть режим "Додати ребро" і послідовно клацніть на двох вершинах.</li>
+                    <li class="list-group-item"><strong>Редагувати:</strong> Подвійний клік на вершині (для зміни назви) або ребрі (для зміни ваги).</li>
+                    <li class="list-group-item"><strong>Видалити:</strong> Оберіть режим "Видалити" і клацніть на потрібному елементі.</li>
+                    <li class="list-group-item"><strong>Перетягування:</strong> У режимі "Редагувати" або "Додати вершину" можна перетягувати вершини.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="loadGraphModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-folder-open"></i> Завантажити граф
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="graphs-list">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Завантаження...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.6/standalone/umd/vis-network.min.js"></script>
+<script src="{{ url_for('static', filename='js/graph_visualizer.js') }}"></script>
+{% endblock %}

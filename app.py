@@ -23,13 +23,13 @@ logger = logging.getLogger(__name__)
 
 def create_app(config_name='default'):
     """
-    Фабрика додатку Flask
+    Фабрика додатку Flask. Ініціалізує конфігурацію, базу даних та маршрути.
     
     Args:
-        config_name: Назва конфігурації ('development', 'production')
+        config_name: Назва конфігурації ('development', 'production').
         
     Returns:
-        Flask додаток
+        Flask додаток.
     """
     app = Flask(__name__)
     
@@ -47,7 +47,7 @@ def create_app(config_name='default'):
         )
         logger.info("✅ База даних ініціалізована")
         
-        # Передача БД у маршрути
+        # Передача об'єкта БД у Blueprints маршрутів
         main_init_db(db)
         graph_init_db(db)
         search_init_db(db)
@@ -75,6 +75,7 @@ def create_app(config_name='default'):
     # Контекстний процесор для шаблонів
     @app.context_processor
     def inject_config():
+        """Вставляє глобальні змінні у всі шаблони Jinja2"""
         return {
             'app_name': 'Shortest Path Finder',
             'version': '1.0.0'

@@ -9,7 +9,7 @@ load_dotenv()
 
 
 class Config:
-    """Базова конфігурація"""
+    """Базова конфігурація для всього додатку"""
     
     # Flask
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-me')
@@ -38,12 +38,12 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    """Конфігурація для розробки"""
+    """Конфігурація для режиму розробки"""
     DEBUG = True
 
 
 class ProductionConfig(Config):
-    """Конфігурація для production"""
+    """Конфігурація для режиму production"""
     DEBUG = False
 
 

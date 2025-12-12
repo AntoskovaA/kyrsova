@@ -1,5 +1,5 @@
 """
-Головні маршрути додатку
+Головні маршрути додатку (відображення HTML-сторінок)
 """
 from flask import Blueprint, render_template, jsonify
 from database import MongoDB
@@ -7,38 +7,46 @@ from config import Config
 
 main_bp = Blueprint('main', __name__)
 
-# Глобальна змінна для БД (буде ініціалізована в app.py)
+# Глобальна змінна для БД
 db = None
 
 
 def init_db(database):
-    """Ініціалізація БД для маршрутів"""
+    """Ініціалізація об'єкта бази даних для використання у маршрутах"""
     global db
     db = database
 
 
 @main_bp.route('/')
 def index():
-    """Головна сторінка"""
+    """Відображення головної сторінки"""
     return render_template('index.html')
 
 
 @main_bp.route('/graph/editor')
 def graph_editor():
-    """Сторінка редактора графів"""
+    """Відображення сторінки редактора графів"""
     return render_template('graph_editor.html')
 
 
 @main_bp.route('/search')
 def search_page():
-    """Сторінка пошуку шляхів"""
+    """
+    Відображення сторінки пошуку шляхів.
+    Завантажує список доступних графів з бази даних.
+    """
     graphs = db.get_all_graphs(limit=100)
     return render_template('search.html', graphs=graphs)
 
 
 @main_bp.route('/results/<result_id>')
 def results_page(result_id):
-    """Сторінка результатів"""
+    """
+    Відображення детальної сторінки результатів пошуку.
+    
+    Args:
+        result_id: ID результату пошуку.
+    """
     result = db.get_search_result(result_id)
     if not result:
         return "Результат не знайдено", 404
@@ -49,12 +57,12 @@ def results_page(result_id):
 
 @main_bp.route('/api/statistics')
 def get_statistics():
-    """API для отримання статистики"""
+    """API для отримання статистики системи з MongoDB"""
     stats = db.get_statistics()
     return jsonify(stats)
 
 
 @main_bp.route('/about')
 def about():
-    """Сторінка про проєкт"""
+    """Відображення сторінки про проєкт"""
     return render_template('about.html')

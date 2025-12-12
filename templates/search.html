@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Пошук шляхів{% endblock %}
+
+{% block extra_css %}
+<style>
+    #graph-display {
+        height: 550px; /* Трохи більша висота */
+        border: 2px solid var(--primary-light);
+        border-radius: 10px;
+        background: #f8f9fa;
+        box-shadow: 0 4px 8px rgba(0,0,0,.05);
+    }
+    
+    .path-highlight {
+        animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    .result-stat-box {
+        padding: 0.8rem;
+        border-radius: 8px;
+        border: 1px solid var(--primary-light);
+        background-color: var(--card-background);
+        box-shadow: 0 2px 4px rgba(0,0,0,.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-search text-primary"></i> Пошук найкоротших шляхів</span>
+                <button class="btn btn-accent btn-sm-custom" data-bs-toggle="modal" data-bs-target="#searchInstructionModal">
+                    <i class="bi bi-question-circle"></i> Інструкція
+                </button>
+            </h2>
+            <p class="text-muted">Оберіть граф, налаштуйте алгоритми та знайдіть оптимальний маршрут</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-gear"></i> Налаштування пошуку
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">1. Виберіть Граф</label>
+                        <select class="form-select" id="graph-select">
+                            <option value="">-- Оберіть граф --</option>
+                            {% for graph in graphs %}
+                            <option value="{{ graph._id }}">
+                                {{ graph.name }} ({{ graph.nodes|length }} вершин)
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">
+                            <a href="{{ url_for('main.graph_editor') }}">Створити новий граф</a>
+                        </small>
+                    </div>
+
+                    <div class="row mb-3 g-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Початкова (Start)</label>
+                            <select class="form-select" id="start-node" disabled>
+                                <option value="">-- Оберіть графа --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Кінцева (End)</label>
+                            <select class="form-select" id="end-node" disabled>
+                                <option value="">-- Оберіть графа --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="text-primary-light">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">2. Виберіть Алгоритм</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="algorithm" 
+                                   id="algo-aco" value="ACO" checked>
+                            <label class="form-check-label" for="algo-aco">
+                                <i class="bi bi-bug text-success"></i> 
+                                Мурашиний алгоритм (ACO)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="algorithm" 
+                                   id="algo-dijkstra" value="Dijkstra">
+                            <label class="form-check-label" for="algo-dijkstra">
+                                <i class="bi bi-lightning text-warning"></i> 
+                                Алгоритм Дейкстри
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="algorithm" 
+                                   id="algo-compare" value="Compare">
+                            <label class="form-check-label" for="algo-compare">
+                                <i class="bi bi-bar-chart text-accent"></i> 
+                                Порівняти обидва
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="aco-parameters">
+                        <hr class="text-primary-light">
+                        <h6 class="text-muted fw-bold">
+                            <i class="bi bi-sliders"></i> Параметри ACO
+                        </h6>
+
+                        <div class="mb-3">
+                            <label class="form-label small">
+                                Кількість мурах: <span id="ants-value" class="fw-bold">50</span>
+                            </label>
+                            <input type="range" class="form-range" id="num-ants" 
+                                   min="10" max="200" step="10" value="50">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">
+                                Alpha (вплив феромону): <span id="alpha-value" class="fw-bold">1.0</span>
+                            </label>
+                            <input type="range" class="form-range" id="alpha" 
+                                   min="0" max="5" step="0.1" value="1.0">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small">
+                                Beta (вплив відстані): <span id="beta-value" class="fw-bold">5.0</span>
+                            </label>
+                            <input type="range" class="form-range" id="beta" 
+                                   min="0" max="10" step="0.1" value="5.0">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small">
+                                Випаровування: <span id="evap-value" class="fw-bold">0.5</span>
+                            </label>
+                            <input type="range" class="form-range" id="evaporation" 
+                                   min="0.1" max="0.9" step="0.1" value="0.5">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small">
+                                Ітерації: <span id="iter-value" class="fw-bold">100</span>
+                            </label>
+                            <input type="range" class="form-range" id="iterations" 
+                                   min="10" max="500" step="10" value="100">
+                        </div>
+                    </div>
+
+                    <hr class="text-primary-light">
+
+                    <div class="d-grid">
+                        <button class="btn btn-accent btn-lg" id="search-btn" disabled>
+                            <i class="bi bi-play-fill"></i> 3. Знайти шлях
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-diagram-3"></i> Візуалізація графа
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <div id="graph-display"></div>
+                </div>
+            </div>
+
+            <div id="loading-indicator" style="display: none;">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-accent mb-3" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Пошук...</span>
+                        </div>
+                        <h5>Виконується пошук...</h5>
+                        <p class="text-muted">Це може зайняти декілька секунд</p>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-accent" 
+                                 role="progressbar" style="width: 100%">
+                                Обчислення...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="results-container" style="display: none;">
+                <div class="row g-3">
+                    <div class="col-lg-6" id="dijkstra-col" style="display: none;">
+                        <div class="card h-100" id="dijkstra-result">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-lightning"></i> Алгоритм Дейкстри
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <div class="text-center result-stat-box">
+                                            <h5 class="text-warning mb-0" id="dijkstra-distance">-</h5>
+                                            <small class="text-muted">Відстань</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-center result-stat-box">
+                                            <h5 class="text-success mb-0" id="dijkstra-time">-</h5>
+                                            <small class="text-muted">Час (сек)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <strong>Знайдений шлях:</strong>
+                                <div id="dijkstra-path" class="alert alert-light mt-2 small"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6" id="aco-col" style="display: none;">
+                        <div class="card h-100" id="aco-result">
+                            <div class="card-header bg-accent text-white">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-bug"></i> Мурашиний алгоритм
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2 mb-3">
+                                    <div class="col-4">
+                                        <div class="text-center result-stat-box">
+                                            <h5 class="text-accent mb-0" id="aco-distance">-</h5>
+                                            <small class="text-muted">Відстань</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-center result-stat-box">
+                                            <h5 class="text-primary mb-0" id="aco-time">-</h5>
+                                            <small class="text-muted">Час (сек)</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-center result-stat-box">
+                                            <h5 class="text-muted mb-0" id="aco-iterations">-</h5>
+                                            <small class="text-muted">Ітерації</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <strong>Знайдений шлях:</strong>
+                                <div id="aco-path" class="alert alert-light mt-2 small"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-3" id="comparison-result" style="display: none;">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0">
+                            <i class="bi bi-bar-chart"></i> Порівняння результатів
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Параметр</th>
+                                        <th>ACO</th>
+                                        <th>Dijkstra</th>
+                                        <th>Різниця</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Відстань</td>
+                                        <td id="comp-aco-dist">-</td>
+                                        <td id="comp-dijk-dist">-</td>
+                                        <td id="comp-dist-diff">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Час виконання</td>
+                                        <td id="comp-aco-time">-</td>
+                                        <td id="comp-dijk-time">-</td>
+                                        <td id="comp-time-diff">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Однаковий шлях?</td>
+                                        <td colspan="3" id="comp-same-path">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <h6 class="mt-4"><i class="bi bi-graph-up text-primary"></i> Графік збіжності ACO</h6>
+                        <canvas id="aco-convergence"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="searchInstructionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-question-circle"></i> Інструкція для запуску пошуку
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ol class="list-group list-group-numbered">
+                    <li class="list-group-item"><strong>Крок 1:</strong> Оберіть зі списку **Граф**, який був раніше збережений у редакторі.</li>
+                    <li class="list-group-item"><strong>Крок 2:</strong> Виберіть **Початкову** та **Кінцеву** вершини.</li>
+                    <li class="list-group-item"><strong>Крок 3:</strong> Виберіть **Алгоритм** (ACO, Дейкстра або Порівняння).</li>
+                    <li class="list-group-item"><strong>Крок 4:</strong> Якщо обрано ACO, налаштуйте параметри (Мурахи, Alpha, Beta, Ітерації).</li>
+                    <li class="list-group-item"><strong>Крок 5:</strong> Натисніть кнопку **"Знайти шлях"**.</li>
+                    <li class="list-group-item"><strong>Крок 6:</strong> Результати, час виконання та візуалізація шляху з'являться знизу.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.6/standalone/umd/vis-network.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock extra_js %}

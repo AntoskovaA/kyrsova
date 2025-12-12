@@ -8,7 +8,12 @@ import random
 
 
 class AntColonyOptimization:
-    """Реалізація мурашиного алгоритму оптимізації"""
+    """
+    Реалізація мурашиного алгоритму оптимізації (ACO).
+    
+    Використовує механізм феромонів та евристичної інформації для ітеративного 
+    пошуку квазі-оптимального найкоротшого шляху у графі.
+    """
     
     def __init__(self,
                  adjacency_matrix: List[List[float]],
@@ -21,18 +26,18 @@ class AntColonyOptimization:
                  iterations: int = 100,
                  q: float = 100.0):
         """
-        Ініціалізація алгоритму
+        Ініціалізація алгоритму.
         
         Args:
-            adjacency_matrix: Матриця суміжності
-            node_to_idx: Відображення ID вершини -> індекс
-            idx_to_node: Відображення індекс -> ID вершини
-            num_ants: Кількість мурах
-            alpha: Вплив феромону (0-10)
-            beta: Вплив евристики/відстані (0-10)
-            evaporation: Коефіцієнт випаровування феромону (0-1)
-            iterations: Кількість ітерацій
-            q: Константа для оновлення феромону
+            adjacency_matrix: Матриця суміжності графа.
+            node_to_idx: Відображення ID вершини -> індекс у матриці.
+            idx_to_node: Відображення індекс -> ID вершини.
+            num_ants: Кількість мурах, що шукають шлях.
+            alpha: Вплив феромону на вибір шляху.
+            beta: Вплив евристики/відстані на вибір шляху.
+            evaporation: Коефіцієнт випаровування феромону.
+            iterations: Кількість ітерацій (поколінь).
+            q: Константа для оновлення феромону.
         """
         self.adjacency_matrix = np.array(adjacency_matrix)
         self.node_to_idx = node_to_idx
@@ -41,8 +46,8 @@ class AntColonyOptimization:
         
         # Параметри алгоритму
         self.num_ants = num_ants
-        self.alpha = alpha  # Вага феромону
-        self.beta = beta    # Вага евристики
+        self.alpha = alpha
+        self.beta = beta
         self.evaporation = evaporation
         self.iterations = iterations
         self.q = q
@@ -62,14 +67,14 @@ class AntColonyOptimization:
     
     def find_shortest_path(self, start: str, end: str) -> Tuple[List[str], float, float, List[Dict]]:
         """
-        Пошук найкоротшого шляху
+        Пошук найкоротшого шляху між початковою та кінцевою вершинами.
         
         Args:
-            start: ID початкової вершини
-            end: ID кінцевої вершини
+            start: ID початкової вершини.
+            end: ID кінцевої вершини.
             
         Returns:
-            Tuple: (шлях, відстань, час виконання, історія)
+            Tuple: (шлях у вигляді ID вершин, відстань, час виконання, історія збіжності).
         """
         start_time = time.time()
         
@@ -120,14 +125,14 @@ class AntColonyOptimization:
     
     def _construct_solution(self, start_idx: int, end_idx: int) -> Tuple[List[int], float]:
         """
-        Побудова рішення однією мурахою
+        Побудова рішення однією мурахою.
         
         Args:
-            start_idx: Індекс початкової вершини
-            end_idx: Індекс кінцевої вершини
+            start_idx: Індекс початкової вершини.
+            end_idx: Індекс кінцевої вершини.
             
         Returns:
-            Tuple: (шлях у вигляді індексів, загальна відстань)
+            Tuple: (шлях у вигляді індексів, загальна відстань).
         """
         path = [start_idx]
         visited = {start_idx}
@@ -157,15 +162,15 @@ class AntColonyOptimization:
     
     def _select_next_node(self, current: int, visited: set, end_idx: int) -> int:
         """
-        Вибір наступної вершини на основі ймовірностей
+        Вибір наступної вершини на основі ймовірностей.
         
         Args:
-            current: Поточна вершина
-            visited: Відвідані вершини
-            end_idx: Індекс кінцевої вершини
+            current: Поточна вершина.
+            visited: Відвідані вершини.
+            end_idx: Індекс кінцевої вершини.
             
         Returns:
-            Індекс наступної вершини або None
+            Індекс наступної вершини або None.
         """
         # Доступні вершини
         unvisited = [i for i in range(self.num_nodes) 
@@ -200,11 +205,11 @@ class AntColonyOptimization:
     
     def _update_pheromones(self, all_paths: List[List[int]], all_distances: List[float]):
         """
-        Оновлення феромонів після ітерації
+        Оновлення феромонів після ітерації.
         
         Args:
-            all_paths: Список шляхів всіх мурах
-            all_distances: Список відстаней всіх мурах
+            all_paths: Список шляхів всіх мурах.
+            all_distances: Список відстаней всіх мурах.
         """
         # Випаровування феромонів
         self.pheromone *= (1 - self.evaporation)
@@ -229,9 +234,9 @@ class AntColonyOptimization:
     
     def get_pheromone_matrix(self) -> List[List[float]]:
         """
-        Отримання поточної матриці феромонів
+        Отримання поточної матриці феромонів.
         
         Returns:
-            Матриця феромонів
+            Матриця феромонів.
         """
         return self.pheromone.tolist()

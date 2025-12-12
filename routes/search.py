@@ -1,5 +1,5 @@
 """
-API маршрути для пошуку шляхів
+API маршрути для пошуку шляхів: виконання алгоритмів та порівняння
 """
 from flask import Blueprint, request, jsonify
 from database import MongoDB
@@ -18,7 +18,7 @@ db = None
 
 
 def init_db(database):
-    """Ініціалізація БД для маршрутів"""
+    """Ініціалізація об'єкта бази даних для використання у маршрутах"""
     global db
     db = database
 
@@ -26,22 +26,9 @@ def init_db(database):
 @search_bp.route('/run', methods=['POST'])
 def run_search():
     """
-    Виконання пошуку шляху
+    Виконання пошуку найкоротшого шляху за вибраним алгоритмом.
     
-    Очікувані параметри:
-    {
-        "graph_id": "...",
-        "algorithm": "ACO" або "Dijkstra",
-        "start": "node_id",
-        "end": "node_id",
-        "parameters": {
-            "num_ants": 50,
-            "alpha": 1.0,
-            "beta": 5.0,
-            "evaporation": 0.5,
-            "iterations": 100
-        }
-    }
+    Очікувані параметри: graph_id, algorithm, start, end, parameters.
     """
     try:
         data = request.get_json()
@@ -125,7 +112,7 @@ def run_search():
 
 
 def _run_aco(adjacency_matrix, node_to_idx, idx_to_node, start, end, parameters):
-    """Виконання мурашиного алгоритму"""
+    """Виконання мурашиного алгоритму оптимізації"""
     # Параметри з Config якщо не вказано
     num_ants = parameters.get('num_ants', Config.DEFAULT_ACO_PARAMS['num_ants'])
     alpha = parameters.get('alpha', Config.DEFAULT_ACO_PARAMS['alpha'])
@@ -186,15 +173,7 @@ def _run_dijkstra(adjacency_matrix, node_to_idx, idx_to_node, start, end):
 @search_bp.route('/compare', methods=['POST'])
 def compare_algorithms():
     """
-    Порівняння алгоритмів
-    
-    Очікувані параметри:
-    {
-        "graph_id": "...",
-        "start": "node_id",
-        "end": "node_id",
-        "aco_parameters": {...}
-    }
+    Виконання та порівняння результатів Ant Colony Optimization та Алгоритму Дейкстри.
     """
     try:
         data = request.get_json()
@@ -231,6 +210,21 @@ def compare_algorithms():
             end
         )
         
+        # Отримання безпечних значень для порівняння
+        aco_dist = aco_result['distance']
+        dijk_dist = dijkstra_result['distance']
+        
+        if aco_dist is not None and dijk_dist is not None:
+            distance_difference = abs(aco_dist - dijk_dist)
+            same_path = aco_result['path'] == dijkstra_result['path']
+        else:
+            # Якщо шлях не знайдено (None), різниця не обчислюється.
+            distance_difference = None
+            same_path = False 
+
+        # Час завжди має бути числом
+        time_difference = aco_result['execution_time'] - dijkstra_result['execution_time']
+        
         # Збереження обох результатів
         for result in [aco_result, dijkstra_result]:
             search_result = SearchResult(
@@ -250,9 +244,9 @@ def compare_algorithms():
             'aco': aco_result,
             'dijkstra': dijkstra_result,
             'comparison': {
-                'distance_difference': abs(aco_result['distance'] - dijkstra_result['distance']) if aco_result['distance'] and dijkstra_result['distance'] else None,
-                'time_difference': aco_result['execution_time'] - dijkstra_result['execution_time'],
-                'same_path': aco_result['path'] == dijkstra_result['path']
+                'distance_difference': distance_difference,
+                'time_difference': time_difference,
+                'same_path': same_path
             }
         }), 200
         
@@ -263,7 +257,7 @@ def compare_algorithms():
 
 @search_bp.route('/history/<graph_id>', methods=['GET'])
 def get_search_history(graph_id):
-    """Отримання історії пошуків для графа"""
+    """Отримання історії пошуків для конкретного графа"""
     try:
         limit = request.args.get('limit', 20, type=int)
         results = db.get_graph_results(graph_id, limit=limit)
@@ -281,7 +275,7 @@ def get_search_history(graph_id):
 
 @search_bp.route('/result/<result_id>', methods=['GET'])
 def get_result(result_id):
-    """Отримання конкретного результату пошуку"""
+    """Отримання конкретного результату пошуку за ID"""
     try:
         result = db.get_search_result(result_id)
         

@@ -7,18 +7,21 @@ import time
 
 
 class Dijkstra:
-    """Реалізація алгоритму Дейкстри"""
+    """
+    Реалізація класичного алгоритму Дейкстри для пошуку найкоротшого шляху
+    в графі з невід'ємними вагами.
+    """
     
     def __init__(self, adjacency_matrix: List[List[float]], 
                  node_to_idx: Dict[str, int],
                  idx_to_node: Dict[int, str]):
         """
-        Ініціалізація алгоритму
+        Ініціалізація алгоритму.
         
         Args:
-            adjacency_matrix: Матриця суміжності
-            node_to_idx: Відображення ID вершини -> індекс
-            idx_to_node: Відображення індекс -> ID вершини
+            adjacency_matrix: Матриця суміжності графа.
+            node_to_idx: Відображення ID вершини -> індекс у матриці.
+            idx_to_node: Відображення індекс -> ID вершини.
         """
         self.adjacency_matrix = adjacency_matrix
         self.node_to_idx = node_to_idx
@@ -27,14 +30,14 @@ class Dijkstra:
     
     def find_shortest_path(self, start: str, end: str) -> Tuple[List[str], float, float]:
         """
-        Пошук найкоротшого шляху
+        Пошук найкоротшого шляху між двома вершинами.
         
         Args:
-            start: ID початкової вершини
-            end: ID кінцевої вершини
+            start: ID початкової вершини.
+            end: ID кінцевої вершини.
             
         Returns:
-            Tuple: (шлях, відстань, час виконання)
+            Tuple: (шлях у вигляді ID вершин, відстань, час виконання).
         """
         start_time = time.time()
         
@@ -88,15 +91,15 @@ class Dijkstra:
     def _reconstruct_path(self, previous: List[Optional[int]], 
                          start_idx: int, end_idx: int) -> List[str]:
         """
-        Відновлення шляху з масиву попередників
+        Відновлення шляху з масиву попередників.
         
         Args:
-            previous: Масив попередників
-            start_idx: Індекс початкової вершини
-            end_idx: Індекс кінцевої вершини
+            previous: Масив попередників.
+            start_idx: Індекс початкової вершини.
+            end_idx: Індекс кінцевої вершини.
             
         Returns:
-            Список ID вершин шляху
+            Список ID вершин шляху.
         """
         if previous[end_idx] is None and start_idx != end_idx:
             return []  # Шлях не знайдено
@@ -113,13 +116,13 @@ class Dijkstra:
     
     def find_all_shortest_paths(self, start: str) -> Dict[str, Tuple[List[str], float]]:
         """
-        Пошук найкоротших шляхів до всіх вершин
+        Пошук найкоротших шляхів до всіх вершин від заданої початкової вершини.
         
         Args:
-            start: ID початкової вершини
+            start: ID початкової вершини.
             
         Returns:
-            Словник: {вершина: (шлях, відстань)}
+            Словник: {вершина: (шлях, відстань)}.
         """
         start_idx = self.node_to_idx[start]
         

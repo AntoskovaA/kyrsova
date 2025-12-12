@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Про проєкт{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="mb-4">
+                <i class="bi bi-info-circle text-primary"></i>
+                Про проєкт
+            </h2>
+
+            <!-- Опис -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Система пошуку найкоротших шляхів</h5>
+                    <p class="card-text">
+                        Курсова робота з курсу "Бази даних та сховища даних" 
+                        Львівського національного університету імені Івана Франка.
+                    </p>
+                    <p>
+                        Проєкт демонструє застосування <strong>ройових алгоритмів</strong> 
+                        (Ant Colony Optimization) для розв'язання класичної задачі пошуку 
+                        найкоротшого шляху в графах з використанням NoSQL бази даних 
+                        <strong>MongoDB</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Технології -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-stack"></i> Використані технології
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Backend:</h6>
+                            <ul>
+                                <li>Python 3.10+</li>
+                                <li>Flask (веб-фреймворк)</li>
+                                <li>PyMongo (драйвер MongoDB)</li>
+                                <li>NumPy (обчислення)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Frontend:</h6>
+                            <ul>
+                                <li>Bootstrap 5</li>
+                                <li>Vis.js (візуалізація)</li>
+                                <li>Chart.js (графіки)</li>
+                                <li>jQuery</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <h6 class="mt-3">База даних:</h6>
+                    <ul>
+                        <li>MongoDB (NoSQL)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Алгоритми -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-cpu"></i> Реалізовані алгоритми
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <h6><i class="bi bi-bug text-success"></i> Ant Colony Optimization (ACO)</h6>
+                    <p>
+                        Мурашиний алгоритм - метаевристичний алгоритм оптимізації, 
+                        що імітує поведінку мурах під час пошуку шляху до їжі. 
+                        Основна ідея - використання феромонів для комунікації між агентами.
+                    </p>
+
+                    <h6 class="mt-3">
+                        <i class="bi bi-lightning text-warning"></i> Алгоритм Дейкстри
+                    </h6>
+                    <p>
+                        Класичний алгоритм пошуку найкоротшого шляху в графі з 
+                        невід'ємними вагами ребер. Використовується для порівняння 
+                        ефективності з ACO.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Функціонал -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-list-check"></i> Функціонал системи
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>Інтерактивне створення та редагування графів</li>
+                        <li>Генерація випадкових графів</li>
+                        <li>Генерація графа міст України</li>
+                        <li>Пошук найкоротшого шляху з використанням ACO</li>
+                        <li>Пошук за алгоритмом Дейкстри</li>
+                        <li>Порівняння ефективності алгоритмів</li>
+                        <li>Візуалізація графів та знайдених шляхів</li>
+                        <li>Налаштування параметрів алгоритмів</li>
+                        <li>Збереження історії пошуків</li>
+                        <li>Статистика використання системи</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Автор -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-person"></i> Автор
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1">
+                        <strong>Студент:</strong> Антошкова Аліна Олександрівна
+                    </p>
+                    <p class="mb-1">
+                        <strong>Група:</strong> ФЕП-21
+                    </p>
+                    <p class="mb-1">
+                        <strong>Спеціальність:</strong> 121 – Інженерія програмного забезпечення
+                    </p>
+                    <p class="mb-1">
+                        <strong>Науковий керівник:</strong> Сінькевич Олег Олександрович
+                    </p>
+                    <p class="mb-0">
+<strong>Рік:</strong> 2024
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Результати пошуку{% endblock %}
+
+{% block extra_css %}
+<style>
+    #result-graph {
+        height: 500px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('main.index') }}">Головна</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('main.search_page') }}">Пошук</a>
+                    </li>
+                    <li class="breadcrumb-item active">Результат</li>
+                </ol>
+            </nav>
+            <h2>
+                <i class="bi bi-trophy text-warning"></i>
+                Результати пошуку
+            </h2>
+        </div>
+    </div>
+
+    <!-- Основна інформація -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header {% if result.algorithm == 'ACO' %}bg-success{% else %}bg-warning{% endif %} text-white">
+                    <h5 class="mb-0">
+                        {% if result.algorithm == 'ACO' %}
+                            <i class="bi bi-bug"></i> Мурашиний алгоритм (ACO)
+                        {% else %}
+                            <i class="bi bi-lightning"></i> Алгоритм Дейкстри
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Граф -->
+                    <div class="mb-3">
+                        <strong>Граф:</strong> {{ graph.name }}
+                        <span class="badge bg-secondary ms-2">
+                            {{ graph.nodes|length }} вершин, {{ graph.edges|length }} ребер
+                        </span>
+                    </div>
+
+                    <!-- Маршрут -->
+                    <div class="mb-3">
+                        <strong>Маршрут:</strong>
+                        <span class="badge bg-primary">{{ result.start }}</span>
+                        <i class="bi bi-arrow-right"></i>
+                        <span class="badge bg-danger">{{ result.end }}</span>
+                    </div>
+
+                    <!-- Статистика -->
+                    <div class="row text-center mb-3">
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded">
+                                <h4 class="{% if result.algorithm == 'ACO' %}text-success{% else %}text-warning{% endif %} mb-0">
+                                    {{ "%.2f"|format(result.distance) if result.distance else "∞" }}
+                                </h4>
+                                <small class="text-muted">Відстань</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded">
+                                <h4 class="text-info mb-0">
+                                    {{ "%.4f"|format(result.execution_time) }}
+                                </h4>
+                                <small class="text-muted">Час виконання (сек)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded">
+                                <h4 class="text-primary mb-0">
+                                    {{ result.path|length }}
+                                </h4>
+                                <small class="text-muted">Вершин у шляху</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Шлях -->
+                    <div class="alert alert-light">
+                        <strong>Знайдений шлях:</strong><br>
+                        <div class="mt-2">
+                            {% for node in result.path %}
+                                <span class="badge bg-{% if loop.first %}primary{% elif loop.last %}danger{% else %}secondary{% endif %} me-1">
+                                    {{ node }}
+                                </span>
+                                {% if not loop.last %}
+                                    <i class="bi bi-arrow-right text-muted"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Параметри ACO -->
+                    {% if result.algorithm == 'ACO' and result.parameters %}
+                    <div class="mt-3">
+                        <h6>Параметри алгоритму:</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <small class="text-muted">Мурах:</small>
+                                <strong>{{ result.parameters.num_ants }}</strong>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Alpha:</small>
+                                <strong>{{ result.parameters.alpha }}</strong>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Beta:</small>
+                                <strong>{{ result.parameters.beta }}</strong>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Випаровування:</small>
+                                <strong>{{ result.parameters.evaporation }}</strong>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Ітерації:</small>
+                                <strong>{{ result.parameters.iterations }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Дата -->
+                    <div class="mt-3 text-muted">
+                        <small>
+                            <i class="bi bi-clock"></i>
+                            {{ result.timestamp.strftime('%d.%m.%Y %H:%M:%S') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Візуалізація -->
+    <div class="row mb-4">
+        <div class="col-lg-10 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-diagram-3"></i> Візуалізація знайденого шляху
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <div id="result-graph"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Дії -->
+    <div class="row">
+        <div class="col-lg-10 mx-auto text-center">
+            <a href="{{ url_for('main.search_page') }}" class="btn btn-primary">
+                <i class="bi bi-arrow-left"></i> Новий пошук
+            </a>
+            <a href="{{ url_for('main.graph_editor') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-pencil"></i> Редагувати граф
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Дані для JavaScript -->
+<script>
+    const graphData = {{ graph|tojson }};
+    const resultData = {{ result|tojson }};
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.6/standalone/umd/vis-network.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Візуалізація графа з підсвіченим шляхом
+    const container = document.getElementById('result-graph');
+    
+    // Підготовка даних
+    const nodes = new vis.DataSet(graphData.nodes.map(node => ({
+        id: node.id,
+        label: node.label,
+        x: node.x,
+        y: node.y,
+        color: resultData.path.includes(node.id) ? 
+            (node.id === resultData.start ? '#0d6efd' : 
+             node.id === resultData.end ? '#dc3545' : '#198754') : 
+            '#6c757d'
+    })));
+    
+    const edges = new vis.DataSet(graphData.edges.map((edge, idx) => {
+        const inPath = resultData.path.some((node, i) => 
+            i < resultData.path.length - 1 &&
+            ((resultData.path[i] === edge.from && resultData.path[i+1] === edge.to) ||
+             (resultData.path[i] === edge.to && resultData.path[i+1] === edge.from))
+        );
+        
+        return {
+            id: idx,
+            from: edge.from,
+            to: edge.to,
+            label: String(edge.weight),
+            color: inPath ? '#198754' : '#dee2e6',
+            width: inPath ? 4 : 1
+        };
+    }));
+    
+    const data = { nodes, edges };
+    const options = {
+        physics: false,
+        edges: {
+            smooth: { type: 'continuous' },
+            font: { size: 14, align: 'top' }
+        },
+        nodes: {
+            shape: 'dot',
+            size: 20,
+            font: { size: 16, color: '#ffffff' }
+        }
+    };
+    
+    new vis.Network(container, data, options);
+});
+</script>
+{% endblock %}

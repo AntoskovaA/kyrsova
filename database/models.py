@@ -15,7 +15,7 @@ class Node:
         self.y = y
     
     def to_dict(self) -> Dict:
-        """Конвертація у словник"""
+        """Конвертація об'єкта вершини у словник для зберігання"""
         return {
             'id': self.id,
             'label': self.label,
@@ -25,7 +25,7 @@ class Node:
     
     @staticmethod
     def from_dict(data: Dict) -> 'Node':
-        """Створення з словника"""
+        """Створення об'єкта вершини зі словника"""
         return Node(
             node_id=data['id'],
             label=data['label'],
@@ -43,7 +43,7 @@ class Edge:
         self.weight = weight
     
     def to_dict(self) -> Dict:
-        """Конвертація у словник"""
+        """Конвертація об'єкта ребра у словник для зберігання"""
         return {
             'from': self.from_node,
             'to': self.to_node,
@@ -52,7 +52,7 @@ class Edge:
     
     @staticmethod
     def from_dict(data: Dict) -> 'Edge':
-        """Створення з словника"""
+        """Створення об'єкта ребра зі словника"""
         return Edge(
             from_node=data['from'],
             to_node=data['to'],
@@ -61,7 +61,10 @@ class Edge:
 
 
 class Graph:
-    """Модель графа"""
+    """
+    Модель графа, що містить список вершин та ребер. 
+    Надає утиліту для генерації матриці суміжності.
+    """
     
     def __init__(self, name: str, nodes: List[Node] = None, edges: List[Edge] = None):
         self.name = name
@@ -70,12 +73,12 @@ class Graph:
         self.created_at = datetime.utcnow()
     
     def add_node(self, node: Node):
-        """Додавання вершини"""
+        """Додавання вершини до графа, якщо її ID ще не існує"""
         if not any(n.id == node.id for n in self.nodes):
             self.nodes.append(node)
     
     def add_edge(self, edge: Edge):
-        """Додавання ребра"""
+        """Додавання ребра до графа з перевіркою існування вершин"""
         # Перевірка існування вершин
         node_ids = {n.id for n in self.nodes}
         if edge.from_node in node_ids and edge.to_node in node_ids:
@@ -83,10 +86,10 @@ class Graph:
     
     def get_adjacency_matrix(self) -> Tuple[Dict, List[List[float]]]:
         """
-        Створення матриці суміжності
+        Створення матриці суміжності графа для використання алгоритмами.
         
         Returns:
-            Tuple: (відображення id->індекс, матриця суміжності)
+            Tuple: (відображення id вершини -> індекс, матриця суміжності).
         """
         n = len(self.nodes)
         node_to_idx = {node.id: i for i, node in enumerate(self.nodes)}
@@ -108,7 +111,7 @@ class Graph:
         return node_to_idx, matrix
     
     def to_dict(self) -> Dict:
-        """Конвертація у словник для MongoDB"""
+        """Конвертація об'єкта графа у словник для MongoDB"""
         return {
             'name': self.name,
             'nodes': [node.to_dict() for node in self.nodes],
@@ -118,7 +121,7 @@ class Graph:
     
     @staticmethod
     def from_dict(data: Dict) -> 'Graph':
-        """Створення з словника"""
+        """Створення об'єкта графа зі словника, отриманого з MongoDB"""
         graph = Graph(name=data['name'])
         graph.nodes = [Node.from_dict(n) for n in data['nodes']]
         graph.edges = [Edge.from_dict(e) for e in data['edges']]
@@ -128,7 +131,7 @@ class Graph:
 
 
 class SearchResult:
-    """Модель результату пошуку"""
+    """Модель результату пошуку найкоротшого шляху"""
     
     def __init__(self,
                  graph_id: str,
@@ -152,7 +155,7 @@ class SearchResult:
         self.timestamp = datetime.utcnow()
     
     def to_dict(self) -> Dict:
-        """Конвертація у словник для MongoDB"""
+        """Конвертація об'єкта результату у словник для MongoDB"""
         result = {
             'graph_id': self.graph_id,
             'algorithm': self.algorithm,
@@ -174,7 +177,7 @@ class SearchResult:
     
     @staticmethod
     def from_dict(data: Dict) -> 'SearchResult':
-        """Створення з словника"""
+        """Створення об'єкта результату зі словника, отриманого з MongoDB"""
         return SearchResult(
             graph_id=data['graph_id'],
             algorithm=data['algorithm'],

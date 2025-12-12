@@ -1,5 +1,5 @@
 """
-Утиліти для роботи з графами
+Утиліти для роботи з графами: генерація, валідація, обчислення
 """
 import random
 from typing import List, Dict, Tuple
@@ -15,21 +15,21 @@ class GraphUtils:
                             min_weight: float = 1.0,
                             max_weight: float = 100.0) -> Dict:
         """
-        Генерація випадкового графа
+        Генерація випадкового графа.
         
         Args:
-            num_nodes: Кількість вершин
-            connectivity: Щільність з'єднань (0-1)
-            min_weight: Мінімальна вага ребра
-            max_weight: Максимальна вага ребра
+            num_nodes: Кількість вершин.
+            connectivity: Щільність з'єднань (0-1).
+            min_weight: Мінімальна вага ребра.
+            max_weight: Максимальна вага ребра.
             
         Returns:
-            Словник з даними графа
+            Словник з даними графа.
         """
         nodes = []
         edges = []
         
-        # Генерація вершин по колу
+        # Генерація вершин по колу для кращої візуалізації
         center_x, center_y = 400, 300
         radius = 200
         
@@ -56,17 +56,28 @@ class GraphUtils:
                         'weight': weight
                     })
         
-        # Забезпечення зв'язності графа (мінімальне остовне дерево)
-        if len(edges) < num_nodes - 1:
+        # Забезпечення зв'язності графа
+        if not GraphUtils._is_connected(nodes, edges):
+            # Проста логіка додавання мінімального остовного дерева для зв'язності
             for i in range(num_nodes - 1):
-                if not any(e['from'] == f'node_{i}' or e['to'] == f'node_{i}' for e in edges):
+                node_i = f'node_{i}'
+                node_i_plus_1 = f'node_{i+1}'
+                
+                # Перевірка, чи з'єднання вже не існує
+                exists = any(
+                    (e['from'] == node_i and e['to'] == node_i_plus_1) or 
+                    (e['from'] == node_i_plus_1 and e['to'] == node_i) 
+                    for e in edges
+                )
+                
+                if not exists:
                     weight = round(random.uniform(min_weight, max_weight), 2)
                     edges.append({
-                        'from': f'node_{i}',
-                        'to': f'node_{i+1}',
+                        'from': node_i,
+                        'to': node_i_plus_1,
                         'weight': weight
                     })
-        
+
         return {
             'name': f'Random Graph ({num_nodes} nodes)',
             'nodes': nodes,
@@ -76,10 +87,10 @@ class GraphUtils:
     @staticmethod
     def generate_cities_graph() -> Dict:
         """
-        Генерація графа міст України (приклад)
+        Генерація графа міст України (приклад).
         
         Returns:
-            Словник з даними графа міст
+            Словник з даними графа міст.
         """
         nodes = [
             {'id': 'kyiv', 'label': 'Київ', 'x': 500, 'y': 200},
@@ -118,13 +129,16 @@ class GraphUtils:
     @staticmethod
     def validate_graph(graph_data: Dict) -> Tuple[bool, str]:
         """
-        Валідація графа
+        Валідація графа перед збереженням або обробкою.
+        
+        Перевіряє наявність ключових полів, унікальність ID, існування 
+        вершин ребер та зв'язність графа.
         
         Args:
-            graph_data: Дані графа
+            graph_data: Дані графа.
             
         Returns:
-            Tuple: (валідність, повідомлення про помилку)
+            Tuple: (валідність, повідомлення про помилку).
         """
         # Перевірка наявності полів
         if 'nodes' not in graph_data or 'edges' not in graph_data:
@@ -149,7 +163,7 @@ class GraphUtils:
                 return False, f"Вершина '{edge['from']}' не існує"
             if edge['to'] not in node_ids_set:
                 return False, f"Вершина '{edge['to']}' не існує"
-            if edge['weight'] <= 0:
+            if 'weight' not in edge or edge['weight'] <= 0:
                 return False, f"Вага ребра повинна бути додатною"
         
         # Перевірка зв'язності графа
@@ -161,14 +175,14 @@ class GraphUtils:
     @staticmethod
     def _is_connected(nodes: List[Dict], edges: List[Dict]) -> bool:
         """
-        Перевірка зв'язності графа (DFS)
+        Перевірка зв'язності графа (методом DFS).
         
         Args:
-            nodes: Список вершин
-            edges: Список ребер
+            nodes: Список вершин.
+            edges: Список ребер.
             
         Returns:
-            True якщо граф зв'язний
+            True якщо граф зв'язний.
         """
         if not nodes:
             return False
@@ -177,7 +191,7 @@ class GraphUtils:
         adjacency = {node['id']: [] for node in nodes}
         for edge in edges:
             adjacency[edge['from']].append(edge['to'])
-            adjacency[edge['to']].append(edge['from'])
+            adjacency[edge['to']].append(edge['from']) # Граф неорієнтований
         
         # DFS
         visited = set()
@@ -188,7 +202,7 @@ class GraphUtils:
             if current in visited:
                 continue
             visited.add(current)
-            stack.extend(adjacency[current])
+            stack.extend(adjacency.get(current, []))
         
         return len(visited) == len(nodes)
     
@@ -197,15 +211,15 @@ class GraphUtils:
                                 adjacency_matrix: List[List[float]],
                                 node_to_idx: Dict[str, int]) -> float:
         """
-        Обчислення довжини шляху
+        Обчислення загальної довжини шляху.
         
         Args:
-            path: Список ID вершин
-            adjacency_matrix: Матриця суміжності
-            node_to_idx: Відображення ID -> індекс
+            path: Список ID вершин, що формують шлях.
+            adjacency_matrix: Матриця суміжності графа.
+            node_to_idx: Відображення ID -> індекс.
             
         Returns:
-            Загальна довжина шляху
+            Загальна довжина шляху або float('inf'), якщо шлях не існує.
         """
         if len(path) < 2:
             return 0.0
