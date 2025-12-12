@@ -45,7 +45,7 @@ def create_app(config_name='default'):
             uri=app.config['MONGODB_URI'],
             database=app.config['MONGODB_DATABASE']
         )
-        logger.info("✅ База даних ініціалізована")
+        logger.info("База даних ініціалізована")
         
         # Передача об'єкта БД у Blueprints маршрутів
         main_init_db(db)
@@ -53,7 +53,7 @@ def create_app(config_name='default'):
         search_init_db(db)
         
     except Exception as e:
-        logger.error(f"❌ Помилка ініціалізації БД: {e}")
+        logger.error(f" Помилка ініціалізації БД: {e}")
         raise
     
     # Реєстрація blueprints
@@ -81,7 +81,7 @@ def create_app(config_name='default'):
             'version': '1.0.0'
         }
     
-    logger.info("✅ Flask додаток створено")
+    logger.info("Flask додаток створено")
     return app
 
 
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     port = int(os.getenv('FLASK_PORT', 5000))
     debug = os.getenv('FLASK_ENV') == 'development'
     
-    logger.info(f"🚀 Запуск сервера на http://{host}:{port}")
-    logger.info(f"📊 Режим: {'Development' if debug else 'Production'}")
+    logger.info(f"Запуск сервера на http://{host}:{port}")
+    logger.info(f"Режим: {'Development' if debug else 'Production'}")
     
     app.run(host=host, port=port, debug=debug)
