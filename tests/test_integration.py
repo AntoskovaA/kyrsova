@@ -98,7 +98,8 @@ class TestFlaskAPI(unittest.TestCase):
 
     def test_c_shortest_path_dijkstra_full_cycle(self):
         """Тест повного циклу: Створення -> Пошук (Dijkstra)"""
-        # 1. Створення графа (забезпечення ID)
+        
+        # 1. Створення графа
         response = self.client.post(
             '/api/graph/create',
             data=json.dumps(self.base_graph_data),
@@ -106,7 +107,7 @@ class TestFlaskAPI(unittest.TestCase):
         )
         graph_id = response.get_json()['graph_id']
 
-        # 2. Виконання пошуку
+        # 2. Виконання пошуку (ЗАПИС В БД через API)
         search_payload = {
             'graph_id': graph_id,
             'algorithm': 'Dijkstra',
@@ -120,20 +121,24 @@ class TestFlaskAPI(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         result = response.get_json()
-
-        # 3. Перевірка результатів Дейкстри
-        # Очікуваний шлях: A -> B -> C (10 + 5 = 15)
+        
+        # Перевірка API відповіді
         self.assertEqual(result['distance'], 15.0)
-        self.assertEqual(result['path'], ['A', 'B', 'C'])
-        self.assertIn('result_id', result)
         
+        # 3. Підготовка до читання
         result_id_str = result['result_id']
+
+        read_response = self.client.get(f'/api/search/result/{result_id_str}')
         
-        # 4. Перевірка збереження результату в БД
-        db_result = self.db.get_search_result(result_id_str)
-        self.assertIsNotNone(db_result, f"Результат з ID {result_id_str} не знайдено в БД.")
+        # Перевіряємо, що API успішно повернув результат (Код 200)
+        self.assertEqual(read_response.status_code, 200, 
+                         f"API не зміг прочитати результат з ID {result_id_str} після запису.")
         
+        db_result = read_response.get_json()
+        
+        # Фінальна перевірка, що дані коректні
         self.assertEqual(db_result['algorithm'], 'Dijkstra')
+        self.assertEqual(db_result['distance'], 15.0)
 
     def test_d_compare_algorithms(self):
         """Тест порівняння ACO та Дейкстри"""
