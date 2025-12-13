@@ -60,9 +60,3 @@ def get_statistics():
     """API для отримання статистики системи з MongoDB"""
     stats = db.get_statistics()
     return jsonify(stats)
-
-
-@main_bp.route('/about')
-def about():
-    """Відображення сторінки про проєкт"""
-    return render_template('about.html')
